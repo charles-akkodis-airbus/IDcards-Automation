@@ -7,13 +7,14 @@ from modules.drive_collector import (
     normalize_fleet,
     normalize_ata,
     navigate_into_subfolder,
-    download_subcontent_by_id
+    crawl_and_download_alert_tree,
+    unpack_all_archives
 )
 
 os.environ["DISPLAY"] = ":99"
 
 def enable_chrome_auto_downloads(user_data_dir: str):
-    """Force Chrome à autoriser les téléchargements multiples sans demander d'confirmation."""
+    """Configures Chrome user profile to allow automated multiple downloads without prompts."""
     pref_path = os.path.join(user_data_dir, "Default", "Preferences")
     os.makedirs(os.path.dirname(pref_path), exist_ok=True)
     prefs = {}
@@ -23,14 +24,14 @@ def enable_chrome_auto_downloads(user_data_dir: str):
                 prefs = json.load(f)
         except Exception:
             pass
-    
+
     if "profile" not in prefs:
         prefs["profile"] = {}
     if "default_content_setting_values" not in prefs["profile"]:
         prefs["profile"]["default_content_setting_values"] = {}
-    
+
     prefs["profile"]["default_content_setting_values"]["automatic_downloads"] = 1
-    
+
     with open(pref_path, "w") as f:
         json.dump(prefs, f)
 
@@ -80,8 +81,8 @@ def test_step_by_step_navigation():
             ]
         )
         page = context.new_page()
-
         os.makedirs(config.DOWNLOAD_DIR, exist_ok=True)
+
         cdp = page.context.new_cdp_session(page)
         cdp.send("Page.setDownloadBehavior", {
             "behavior": "allow",
@@ -109,7 +110,11 @@ def test_step_by_step_navigation():
             context.close()
             return
 
-        print(f"\n[STEP 4/4] Recherche Alerte : '{params['alert_title']}'...")
+        # Explicit stabilization pause so the ATA folder items are fully hydrated
+        print("\nStabilisation de la liste des alertes...")
+        time.sleep(4)
+
+        print(f"[STEP 4/4] Recherche Alerte : '{params['alert_title']}'...")
         success, final_folder_name = navigate_into_subfolder(page, params['alert_title'], is_fuzzy=True)
         if not success:
             context.close()
@@ -117,8 +122,11 @@ def test_step_by_step_navigation():
 
         print(f"\n[SUCCESS] Dossier cible ouvert : '{final_folder_name}'")
 
-        # Extraction directe basée sur les identifiants de dossier uniques
-        download_subcontent_by_id(page, config.DOWNLOAD_DIR)
+        # POINT DE DÉPART : descente récursive dans chaque sous-dossier et téléchargement de tous les fichiers
+        crawl_and_download_alert_tree(page, config.DOWNLOAD_DIR, params=params)
+
+        # Décompression de toutes les archives récupérées
+        unpack_all_archives(config.DOWNLOAD_DIR, config.EXTRACT_DIR)
 
         time.sleep(3)
         context.close()
