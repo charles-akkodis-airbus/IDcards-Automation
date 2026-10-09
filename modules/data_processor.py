@@ -8,7 +8,6 @@ def read_extracted_data(extract_dir: str) -> str:
             file_path = os.path.join(root, file)
             ext = os.path.splitext(file)[1].lower()
             
-            # Explicit tags in English to guide Gemini's source priority rules
             if ext == '.json':
                 tag = "PARAMETERS FILE (JSON - Primary source for thresholds & configurations)"
             elif ext == '.py':
@@ -17,8 +16,9 @@ def read_extracted_data(extract_dir: str) -> str:
                 tag = f"TECHNICAL DOCUMENTATION ({file})"
             else:
                 continue
-
+                
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 combined_text.append(f"=== {tag} ===\n{f.read()}\n")
-                    
+                
+    # Le return doit se trouver HORS de la boucle for
     return "\n".join(combined_text)

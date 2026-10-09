@@ -27,6 +27,7 @@ def analyze_files_via_web(extract_dir: str) -> str:
     with sync_playwright() as p:
         context = p.chromium.launch_persistent_context(
             user_data_dir=config.USER_DATA_DIR,
+            channel="chrome",  # <--- Utilise le Chrome installé sur la machine
             headless=True,
             args=[
                 "--no-sandbox",

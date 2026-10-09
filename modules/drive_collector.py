@@ -1,5 +1,7 @@
 import os
+import sys
 import time
+import shutil
 import subprocess
 import requests
 from typing import Optional, Dict
@@ -11,18 +13,20 @@ DOWNLOAD_DIR = getattr(config, "DOWNLOAD_DIR", "/tmp/downloads")
 _CACHED_TOKEN = None
 
 def get_access_token(force_refresh: bool = False) -> str:
-    """Récupère et met en cache le jeton d'accès OAuth via gcloud."""
+    """Récupère et met en cache le jeton d'accès OAuth via gcloud (compatible Linux & Windows)."""
     global _CACHED_TOKEN
     if _CACHED_TOKEN and not force_refresh:
         return _CACHED_TOKEN
 
-    cmd = ["gcloud", "auth", "print-access-token"]
-    res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    gcloud_bin = shutil.which("gcloud") or "gcloud"
+    cmd = [gcloud_bin, "auth", "print-access-token"]
+    use_shell = (sys.platform == "win32")
+
+    res = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=use_shell)
     _CACHED_TOKEN = res.stdout.strip()
     return _CACHED_TOKEN
 
 def safe_api_get(url: str, headers: dict, params: dict, max_retries: int = 5) -> Optional[requests.Response]:
-    """Effectue une requête GET avec gestion des quotas et rafraîchissement du jeton."""
     delay = 3
     for attempt in range(max_retries):
         res = requests.get(url, headers=headers, params=params)
@@ -55,7 +59,6 @@ def normalize_ata(raw_ata: str) -> str:
     return clean
 
 def search_subfolder(parent_id: str, target_name: str, fuzzy: bool = False) -> Optional[Dict[str, str]]:
-    """Recherche un sous-dossier spécifique dans un dossier parent."""
     if not target_name:
         return None
 
@@ -99,7 +102,6 @@ def search_subfolder(parent_id: str, target_name: str, fuzzy: bool = False) -> O
     return None
 
 def download_folder_recursive(folder_id: str, local_dir: str):
-    """Parcourt récursivement le dossier cible et tous ses sous-dossiers."""
     token = get_access_token()
     headers = {"Authorization": f"Bearer {token}"}
     os.makedirs(local_dir, exist_ok=True)
@@ -165,7 +167,6 @@ def download_folder_recursive(folder_id: str, local_dir: str):
                 print(f"    [ERREUR {file_res.status_code}] Échec pour {item_name}")
 
 def fetch_drive_files(params: dict) -> str:
-    """Wrapper principal appelé par main.py."""
     print("==================================================")
     print("     NAVIGATION CIBLÉE VIA GOOGLE DRIVE API       ")
     print("==================================================")
@@ -175,7 +176,7 @@ def fetch_drive_files(params: dict) -> str:
     workspace = params.get("workspace", "00_Model Workspace")
     raw_ata = params.get("ata_chapter") or params.get("ata") or ""
     ata = normalize_ata(raw_ata)
-    alert = params.get("target_alert") or params.get("alert") or ""
+    alert = params.get("alert_title") or params.get("target_alert") or params.get("alert") or ""
     output_dir = params.get("download_dir", DOWNLOAD_DIR)
 
     print(f"\n[1/4] Recherche Flotte : « {fleet} »...")
