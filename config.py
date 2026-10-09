@@ -1,7 +1,7 @@
 import os
 
 USER_DATA_DIR = "/tmp/chrome_session"
-DOWNLOAD_DIR = "/tmp/downloads"
+DOWNLOAD_DIR = "/home/charles_rigal_external/SBCZ/IDcards-Automation/downloads"
 EXTRACT_DIR = "/tmp/extracted"
 
 # ID racine du dossier Google Drive
