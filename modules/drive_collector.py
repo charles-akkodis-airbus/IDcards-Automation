@@ -17,14 +17,19 @@ def get_access_token(force_refresh: bool = False) -> str:
     global _CACHED_TOKEN
     if _CACHED_TOKEN and not force_refresh:
         return _CACHED_TOKEN
-
+    
     gcloud_bin = shutil.which("gcloud") or "gcloud"
     cmd = [gcloud_bin, "auth", "print-access-token"]
     use_shell = (sys.platform == "win32")
-
-    res = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=use_shell)
-    _CACHED_TOKEN = res.stdout.strip()
-    return _CACHED_TOKEN
+    
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=use_shell)
+        _CACHED_TOKEN = res.stdout.strip()
+        return _CACHED_TOKEN
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("\n[ERREUR CRITIQUE] L'outil Google Cloud SDK ('gcloud') est introuvable ou non authentifié.")
+        print("Exécute la commande suivante dans ton terminal : gcloud auth login")
+        sys.exit(1)
 
 def safe_api_get(url: str, headers: dict, params: dict, max_retries: int = 5) -> Optional[requests.Response]:
     delay = 3

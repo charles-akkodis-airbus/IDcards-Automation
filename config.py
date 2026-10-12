@@ -1,8 +1,11 @@
 import os
 
-USER_DATA_DIR = "/tmp/chrome_session"
-DOWNLOAD_DIR = "/home/charles_rigal_external/SBCZ/IDcards-Automation/downloads"
-EXTRACT_DIR = "/tmp/extracted"
+# Répertoire racine du projet
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+USER_DATA_DIR = os.path.join(BASE_DIR, "tmp", "chrome_session")
+DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads")
+EXTRACT_DIR = os.path.join(BASE_DIR, "tmp", "extracted")
 
 # ID racine du dossier Google Drive
 ROOT_FOLDER_ID = "1-k3I8mLFdWHz_QDTqScfHvdREBWTUFCT"

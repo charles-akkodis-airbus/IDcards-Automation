@@ -26,7 +26,22 @@ def extract_text_from_docx(filepath: str) -> str:
         return f"[Erreur d'extraction DOCX : {e}]"
 
 def extract_text_from_xlsx(filepath: str) -> str:
-    """Extrait le texte brut de la première feuille de calcul Excel."""
+    """Extrait le texte de toutes les feuilles de calcul Excel."""
+    try:
+        wb = openpyxl.load_workbook(filepath, data_only=True)
+        sheets_data = []
+        for sheetname in wb.sheetnames:
+            sheet = wb[sheetname]
+            rows = []
+            for row in sheet.iter_rows(values_only=True):
+                row_data = [str(cell) for cell in row if cell is not None]
+                if row_data:
+                    rows.append(" | ".join(row_data))
+            if rows:
+                sheets_data.append(f"--- Feuille : {sheetname} ---\n" + "\n".join(rows))
+        return "\n\n".join(sheets_data)
+    except Exception as e:
+        return f"[Erreur d'extraction XLSX : {e}]"    """Extrait le texte brut de la première feuille de calcul Excel."""
     try:
         wb = openpyxl.load_workbook(filepath, data_only=True)
         sheet = wb.active
