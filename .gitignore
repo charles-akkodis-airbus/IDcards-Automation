@@ -1,3 +1,35 @@
-echo "__pycache__/" >> .gitignore
-echo "*.pyc" >> .gitignore
-echo "downloads/" >> .gitignore
+# Environnements virtuels
+venv/
+.venv/
+env/
+ENV/
+
+# Bytecode & Caches Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Playwright & Navigateurs
+playwright-report/
+test-results/
+.cache/
+
+# Téléchargements & données temporaires
+downloads/
+extracted/
+*.log
+
+# Fichiers système & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Identifiants & secrets
+*.env
+client_secrets*.json
+token*.json
+credentials*.json
