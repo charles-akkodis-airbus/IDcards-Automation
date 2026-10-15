@@ -1,7 +1,7 @@
 import os
 
 USER_DATA_DIR = "/tmp/chrome_session"
-DOWNLOAD_DIR = "~/SBCZ/IDcards-Automation/downloads"
+DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")
 EXTRACT_DIR = "/tmp/extracted"
 
 # ID racine du dossier Google Drive

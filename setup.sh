@@ -16,15 +16,14 @@ else
     echo -e "\n[ERREUR] Aucun interpréteur Python valide n'a été trouvé."
     exit 1
 fi
-
-echo -e "\n[1/4] Interprèteur Python : $PYTHON_CMD"
+echo -e "\n[1/5] Interpréteur Python : $PYTHON_CMD"
 
 # 2. Création et activation du venv
 if [ ! -d "venv" ]; then
-    echo -e "\n[2/4] Création de l'environnement virtuel 'venv'..."
+    echo -e "\n[2/5] Création de l'environnement virtuel 'venv'..."
     $PYTHON_CMD -m venv venv
 else
-    echo -e "\n[2/4] L'environnement 'venv' existe déjà."
+    echo -e "\n[2/5] L'environnement 'venv' existe déjà."
 fi
 
 if [ -f "venv/bin/activate" ]; then
@@ -34,7 +33,7 @@ elif [ -f "venv/Scripts/activate" ]; then
 fi
 
 # 3. Installation des dépendances
-echo -e "\n[3/4] Installation des dépendances Python..."
+echo -e "\n[3/5] Installation des dépendances Python..."
 if [ -f "wheels.tar.gz" ] && [ ! -d "wheels" ]; then
     echo "    Extraction automatique de wheels.tar.gz..."
     tar -xzvf wheels.tar.gz
@@ -48,12 +47,20 @@ else
     pip install -r requirements.txt
 fi
 
-# Installateur Playwright si présent
 python -m playwright install chromium 2>/dev/null || true
 
 # 4. Création des dossiers de travail
-echo -e "\n[4/4] Création des dossiers de stockage..."
-mkdir -p downloads tmp/chrome_session tmp/extracted 2>/dev/null || true
+echo -e "\n[4/5] Création des dossiers de stockage..."
+mkdir -p downloads /tmp/chrome_session /tmp/extracted 2>/dev/null || true
+
+# 5. Authentification Google Cloud (accès Google Drive)
+echo -e "\n[5/5] Connexion à Google Cloud avec accès Drive..."
+if command -v gcloud &> /dev/null; then
+    gcloud auth login --enable-gdrive-access
+else
+    echo -e "\n[ERREUR] 'gcloud' est introuvable. Installe le Google Cloud SDK."
+    exit 1
+fi
 
 echo -e "\n=================================================="
 echo " Environnement prêt !"
